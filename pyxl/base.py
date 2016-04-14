@@ -24,6 +24,9 @@ class x_base_metaclass(type):
         for attr_name in self_attrs:
             assert '_' not in attr_name, (
                 "%s: '_' not allowed in attr names, use '-' instead" % attr_name)
+            if type(self_attrs[attr_name]) == tuple:
+                assert self_attrs[attr_name][0] == type(self_attrs[attr_name][1]), (
+                    "%s: default value is not of specified attribute type" % attr_name)
 
         combined_attrs = dict(parent_attrs)
         combined_attrs.update(self_attrs)
@@ -145,7 +148,10 @@ class x_base(object):
             return value
 
         attr_type = self.__attrs__.get(name, unicode)
-        if type(attr_type) == list:
+        if type(attr_type) == tuple:
+            return attr_type[1]
+
+        elif type(attr_type) == list:
             if not attr_type:
                 raise PyxlException('Invalid attribute definition')
 
@@ -168,6 +174,9 @@ class x_base(object):
 
         if value is not None:
             attr_type = self.__attrs__.get(name, unicode)
+
+            if type(attr_type) == tuple:
+                attr_type = attr_type[0]
 
             if type(attr_type) == list:
                 # support for enum values in pyxl attributes
